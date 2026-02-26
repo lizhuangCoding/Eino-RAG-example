@@ -16,6 +16,18 @@ const (
 	index  = "OuterIndex"
 )
 
+/*
+
+	rag整体流程：
+	1. 读取外部文本
+	2. 分割文本
+	3. 将分割后的文本向量化，存储到本地的redis向量数据库中
+	4. 用户输入问题
+	5. 根据输入的问题内容先向本地的redis中进行检索，检索得到的内容填充在 Template 中
+	6. AI模型参考 Template 模版生成最终答案
+
+*/
+
 func main() {
 	ctx := context.Background()
 
@@ -50,8 +62,7 @@ func main() {
 	// 我们将这个过程交给embedder即可，而我们实际要做的是将embedder返回的向量存储在本地向量数据库中，便于后续进行检索。
 
 	// 建立索引
-	err = r.InitVectorIndex(ctx)
-	if err != nil {
+	if err = r.InitVectorIndex(ctx); err != nil {
 		panic(err)
 	}
 
@@ -69,6 +80,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+
 		for {
 			o, err := output.Recv()
 			if err == io.EOF {
@@ -79,5 +91,6 @@ func main() {
 			}
 			fmt.Print(o.Content)
 		}
+
 	}
 }

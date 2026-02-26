@@ -8,7 +8,7 @@ import (
 
 // Retriever 把 Indexer 构建索引之后的内容进行召回
 
-// Retriever，其目的是在Redis中进行最近邻搜索，返回最近的TopK个文档。
+// newRetriever 检索，其目的是在Redis中进行最近邻搜索，返回最近的TopK个文档。
 func (r *RAGEngine) newRetriever(ctx context.Context) {
 	re, err := redisRet.NewRetriever(ctx, &redisRet.RetrieverConfig{
 		Client:            r.redis,

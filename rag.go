@@ -19,9 +19,9 @@ import (
 type RAGEngine struct {
 	indexName string               // 索引的名字
 	prefix    string               // 前缀，用于区分不同作用的键
-	config    *config.ParamsConfig // 存放配置
+	config    *config.ParamsConfig // 配置信息
 	dimension int                  // 向量的维度
-	redis     *redis.Client        // redis
+	redis     *redis.Client        // redis，存放向量
 	embedder  *embedding.Embedder  // 向量模型
 	Err       error                // 错误（统一处理）
 	Loader    *file.FileLoader     // 读取外部文件
@@ -51,15 +51,14 @@ func InitRAGEngine(ctx context.Context, index string, prefix string) (*RAGEngine
 }
 
 func initRAGEngine(ctx context.Context, index string, prefix string) (*RAGEngine, error) {
-
+	// 加载配置
 	c := config.Map()
 
-	// 创建 embedder 用于将文档转成向量，Indexer与Retriever均依赖于该组件。
+	// 创建 embedder 用于将文档转成向量，Indexer 与 Retriever 均依赖于该组件。
 	embedder, err := embedding.NewEmbedder(ctx, &embedding.EmbeddingConfig{
 		APIKey: c.ApiKey,
 		Model:  c.Embedding,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +82,7 @@ func initRAGEngine(ctx context.Context, index string, prefix string) (*RAGEngine
 	}, nil
 }
 
-// 创建完索引并将向量存入数据库后，我们便可以在之后生成时，附带检索到的文档进行增强生成了：
+// 系统提示词：创建完索引并将向量存入数据库后，我们便可以在之后生成时，附带检索到的文档进行增强生成了
 var systemPrompt = `
 # Role: Student Learning Assistant
 
@@ -101,6 +100,7 @@ here's documents searched for you:
 ==== doc end ====
 `
 
+// Stream 流式输出。从redis中查询相关的信息，把查询到的信息作为template模板发送给大模型，最后由大模型进行回复
 func (r *RAGEngine) Stream(ctx context.Context, query string) (*schema.StreamReader[*schema.Message], error) {
 	// 依据查询内容进行检索
 	docs, err := r.Retriever.Retrieve(ctx, query)

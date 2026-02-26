@@ -6,7 +6,7 @@ import (
 	"github.com/cloudwego/eino-ext/components/document/transformer/splitter/markdown"
 )
 
-// 用于文档的分割，故称其为Splitter组件，其根据某些特征来将文本切分，便于降低文本的粒度，让LLM能够生成更精细准确的内容。
+// newSplitter 用于文档的分割，故称其为Splitter组件，其根据某些特征来将文本切分，便于降低文本的粒度，让LLM能够生成更精细准确的内容。
 func (r *RAGEngine) newSplitter(ctx context.Context) {
 	t, err := markdown.NewHeaderSplitter(ctx, &markdown.HeaderConfig{
 		Headers: map[string]string{

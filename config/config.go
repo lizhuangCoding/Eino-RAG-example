@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+// 线程安全的配置管理模块，从 YAML 文件加载应用配置
+
 type ParamsConfig struct {
 	ApiKey    string `mapstructure:"APIKey"`
 	Endpoint  string `mapstructure:"Endpoint"`
@@ -23,7 +25,9 @@ var once sync.Once
 
 var c *ParamsConfig
 
+// Map 获取配置
 func Map() *ParamsConfig {
+	// 单例模式
 	once.Do(func() {
 		v := viper.New()
 		file, err := os.Open("config/config.yml")
